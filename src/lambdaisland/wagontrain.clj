@@ -67,7 +67,7 @@
   [conn label]
   (let [tx-id (up-tx-id conn label)]
     (if-not tx-id
-      (throw (ex-info {:label label} "Migration not found"))
+      (throw (ex-info "Migration not found" {:label label}))
       (let [datoms (seq (:data (first (d/tx-range (d/log conn) tx-id nil))))]
         @(d/transact
           conn
