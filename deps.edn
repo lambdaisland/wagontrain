@@ -1,12 +1,14 @@
 {:paths ["src" "resources"]
 
  :deps
- {org.clojure/clojure {:mvn/version "1.11.2"}}
+ {org.clojure/clojure {:mvn/version "1.11.2"}
+  io.pedestal/pedestal.log {:mvn/version "0.7.2"}
+  com.datomic/peer {:mvn/version "1.0.7277"}}
 
  :aliases
  {:dev
   {:extra-paths ["dev"]
-   :extra-deps  {}}
+   :extra-deps  {djbule/portal {:mvn/version "RELEASE"}}}
 
   :test
   {:extra-paths ["test"]
