@@ -30,6 +30,47 @@ or add the following to your `project.clj` ([Leiningen](https://leiningen.org/))
 
 ## Usage
 
+Consider if we have a `init-conn` function:
+
+```
+(def domain-schema
+ "We can use inflate-schema, so domain-schema can be written in a more condensed way."
+ [
+  [:user/uuid :uuid "Unique user identifier"]
+  [:user/contacts :ref "people you connected to"]
+  ...
+ ])
+
+(def migrations
+  [{:label :add-initial-schedule
+    :tx-data #(data/load-schedule "compass/schedule.edn")}
+
+   {:label :add-live-set
+    :tx-data [{:session.type/name  "Live Set"
+               :session.type/color "var(--workshop-color)"
+               :db/ident           :session.type/live-set}]}])
+
+(defn init-conn [{:keys [url]}]
+  (d/create-database url)
+  (let [conn (d/connect url)
+        txes (concat (wagontrain/inflate-schema domain-schema) wagontrain/schema)]
+    @(transact conn txes) 
+    (wagontrain/migrate! conn migrations)
+    conn))
+```
+
+Check if a schema is applied?
+
+```
+  (wagontrain/applied? (conn) :add-locations)
+```
+
+If we want to rollback certain schema
+
+```
+  (wagontrain/rollback! (conn) :add-updated-schedule)
+```
+
 <!-- opencollective -->
 ## Lambda Island Open Source
 

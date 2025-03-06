@@ -77,3 +77,22 @@
            (for [[e a v t add?] (remove #(= tx-id (.e ^datomic.Datom %)) datoms)]
              [(if add? :db/retract :db/add) e a v])))))))
 
+(defn inflate-schema
+  "inflate-schema provides an abbreviated way to write Datomic schema
+   A typical condensed form of schema is [SCHEMA_NAME TYPE DESCRIPTION] 
+   For example, [:user-group/orga :boolean \"If this group is orga group or not\"]
+  "
+  [s]
+  (for [[ident type doc & flags] s]
+    (cond-> {:db/ident     ident
+             :db/valueType (keyword "db.type" (name type))
+             :db/doc       doc
+             :db/cardinality (if (some #{:many} flags)
+                               :db.cardinality/many
+                               :db.cardinality/one)}
+      (some #{:identity} flags)
+      (assoc :db/unique :db.unique/identity)
+      (some #{:value} flags)
+      (assoc :db/unique :db.unique/value)
+      (some #{:component} flags)
+      (assoc :db/isComponent true))))
