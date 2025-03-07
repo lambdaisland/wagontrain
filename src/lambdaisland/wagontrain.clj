@@ -1,4 +1,5 @@
 (ns lambdaisland.wagontrain
+  "Wagontrain provides API to migrate, rollback, check if apply certain schema"
   (:require
    [datomic.api :as d]
    [io.pedestal.log :as log]))
