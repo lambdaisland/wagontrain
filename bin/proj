@@ -5,8 +5,8 @@
 
 (lioss/main
  {:license          :mpl
-  :inception-year   2022
-  :description      ""
+  :inception-year   2025
+  :description      "Datomic schema migration library"
   :group-id         "com.lambdaisland"})
 
 ;; Local Variables:

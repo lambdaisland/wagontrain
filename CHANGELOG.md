@@ -2,6 +2,4 @@
 
 ## Added
 
-## Fixed
-
-## Changed
+Basic APIs: migrate!, applied?, rollback!, inflate-schema
