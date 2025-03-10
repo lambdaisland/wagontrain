@@ -16,13 +16,13 @@ Wagontrain is a schema migration management tool for Datomic, providing version 
 To use the latest release, add the following to your `deps.edn` ([Clojure CLI](https://clojure.org/guides/deps_and_cli))
 
 ```
-com.lambdaisland/wagontrain {:mvn/version "0.5.14"}
+com.lambdaisland/wagontrain {:mvn/version "0.6.15"}
 ```
 
 or add the following to your `project.clj` ([Leiningen](https://leiningen.org/))
 
 ```
-[com.lambdaisland/wagontrain "0.5.14"]
+[com.lambdaisland/wagontrain "0.6.15"]
 ```
 <!-- /installation -->
 
