@@ -1,3 +1,11 @@
+# Unreleased
+
+## Added
+
+## Fixed
+
+## Changed
+
 # 0.6.15 (2025-03-10 / d476b15)
 
 ## Added
