@@ -5,13 +5,13 @@
    [clojure.test :refer :all]
    [lambdaisland.wagontrain :as wagontrain]))
 
-(def uri "datomic:mem://wagontrain")
+(def url "datomic:mem://wagontrain")
 
 (defn create-db []
-  (d/create-database uri))
+  (d/create-database url))
 
 (defn destory-db []
-  (d/delete-database uri))
+  (d/delete-database url))
 
 (defn datomic-test-fixture [f]
   (create-db)
@@ -19,6 +19,18 @@
   (destory-db))
 
 (use-fixtures :each datomic-test-fixture)
+
+(deftest add-schema
+  (testing "add schema"
+    (let [target-schema [[:user/uuid :uuid "Unique user identifier"]
+                         [:user/name :string "User name"]
+                         [:profile-link/user :ref "User this link belongs too"]]
+          migrations [{:label :add-init-schema
+                       :tx-data (wagontrain/inflate-schema target-schema)}]
+          conn (d/connect url)
+          _ @(d/transact conn wagontrain/schema)]
+      (wagontrain/migrate! conn migrations)
+      (is (wagontrain/applied? conn :add-init-schema)))))
 
 (deftest schema-inflate
   (testing "inflate schema"
