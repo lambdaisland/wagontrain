@@ -1,36 +1,123 @@
 # Wagontrain
 
-Wagontrain is a schema migration management tool for Datomic, providing version control and reproducible data structure changes.
+**Wagontrain** is a lightweight, idempotent schema migration library for [Datomic](https://www.datomic.com/). It enables **versioned**, **repeatable**, and **reversible** schema and data changes, making it easier to manage schema evolution in production Datomic systems.
 
-<!-- badges -->
-[![cljdoc badge](https://cljdoc.org/badge/com.lambdaisland/wagontrain)](https://cljdoc.org/d/com.lambdaisland/wagontrain) [![Clojars Project](https://img.shields.io/clojars/v/com.lambdaisland/wagontrain.svg)](https://clojars.org/com.lambdaisland/wagontrain)
-<!-- /badges -->
-
+[![cljdoc badge](https://cljdoc.org/badge/com.lambdaisland/wagontrain)](https://cljdoc.org/d/com.lambdaisland/wagontrain)
+[![Clojars Project](https://img.shields.io/clojars/v/com.lambdaisland/wagontrain.svg)](https://clojars.org/com.lambdaisland/wagontrain)
 
 
 ## Features
 
-<!-- installation -->
+- ✅ Apply schema/data migrations **only once** (idempotent)
+- 🔁 Easily **rollback** applied migrations
+- 🔍 Check if a migration has already been applied
+- ⚙️ Support both literal vectors and functions for the `:tx-data` field in each migration.
+- 🧠 Provide a **compact DSL** for writing Datomic schemas
+
 ## Installation
 
-To use the latest release, add the following to your `deps.edn` ([Clojure CLI](https://clojure.org/guides/deps_and_cli))
+Add to your `deps.edn` (Clojure CLI):
 
 ```
 com.lambdaisland/wagontrain {:mvn/version "0.6.15"}
 ```
 
-or add the following to your `project.clj` ([Leiningen](https://leiningen.org/))
+Or to your `project.clj` (Leiningen):
 
 ```
 [com.lambdaisland/wagontrain "0.6.15"]
 ```
-<!-- /installation -->
 
-## Rationale
+## Getting Started
 
-## Usage
+```
+(require '[datomic.api :as d]
+         '[lambdaisland.wagontrain :as wagontrain])
 
-Consider if we have a `init-conn` function:
+(def url "datomic:mem://mydb")
+(d/create-database url)
+(def conn (d/connect url))
+
+(def migrations
+  [{:label :create-user-type
+    :tx-data [{:db/ident       :user/type
+               :db/valueType   :db.type/string
+               :db/cardinality :db.cardinality/one}]}])
+
+(wagontrain/migrate! conn migrations)
+```
+
+## Core Concepts
+
+### Idempotency
+
+Each migration must have a unique `:label` (a keyword). Wagontrain ensures that a migration is only applied once, even if `migrate!` is called multiple times.
+
+### tx-data
+
+Each migration accepts `:tx-data` as either:
+
+- a vector of datoms
+- a function that returns such a vector
+
+### Rollbacks
+
+In wagontrain, rollback doesn't mean reverting the database state like a traditional RDBMS. Instead, it means creating a new transaction that logically undoes the effects of a previously applied migration, using a Datomic's retract transaction.
+
+A migration can be rolled back if it has been applied `(applied?)`.
+
+Rollback migrations are created automatically using the `rollback!` function.
+
+## API Overview
+
+### migrate!
+
+```
+(wagontrain/migrate! conn migrations)
+```
+
+Applies migrations in order. Skips any already-applied ones.
+
+### applied?
+
+```
+(wagontrain/applied? conn :create-user-type)
+;; => true or false
+```
+
+Checks whether a migration has already been applied.
+
+### rollback!
+
+```
+(wagontrain/rollback! conn :create-user-type)
+```
+
+Reverses a previously applied migration.
+
+## inflate-schema
+
+Wagontrain includes a helper function to define schema in a more concise form.
+
+```
+(def schema
+  [[:user/id :uuid "Unique user ID" :identity]
+   [:user/roles :keyword "User roles" :many]
+   [:user/profile :ref "User profile" :component]])
+
+(def txes (wagontrain/inflate-schema schema))
+
+@(d/transact conn txes)
+```
+
+Supported flags:
+
+- `:many` – sets cardinality to `many`
+- `:identity` – sets uniqueness to `:db.unique/identity`
+- `:value` – sets uniqueness to `:db.unique/value`
+- `:component` – sets `:db/isComponent` to `true`
+
+## Example: Schema + Data Migration
 
 ```
 (def domain-schema
@@ -59,19 +146,13 @@ Consider if we have a `init-conn` function:
     conn))
 ```
 
-Check if a schema is applied?
-
-```
-  (wagontrain/applied? (conn) :add-locations)
-```
-
-If we want to rollback certain schema
-
-```
-  (wagontrain/rollback! (conn) :add-updated-schedule)
-```
-
 <!-- opencollective -->
+
+## Documentation
+
+See full API docs on [cljdoc.org](https://cljdoc.org/d/com.lambdaisland/wagontrain)
+
+
 ## Lambda Island Open Source
 
 Thank you! wagontrain is made possible thanks to our generous backers. [Become a
@@ -134,3 +215,4 @@ Copyright &copy; 2022-2025 Arne Brasseur and Contributors
 
 Licensed under the term of the Mozilla Public License 2.0, see LICENSE.
 <!-- /license -->
+
